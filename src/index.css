@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;500;600&display=swap');
+
+/* ── CSS VARIABLES ── */
+:root {
+  --g900: #0a2e1a;
+  --g800: #145a38;
+  --g700: #1a7a4a;
+  --g600: #22a05f;
+  --g500: #2dc46e;
+  --g400: #4dd882;
+  --g300: #7ee8a2;
+  --g100: #d6f5e3;
+  --g50: #edfaf3;
+  --lime: #a8e63d;
+  --white: #fff;
+  --gray100: #f4f6f4;
+  --gray200: #e5ebe5;
+  --gray400: #9aaa9a;
+  --gray600: #5a6b5a;
+  --gray800: #2c3a2c;
+  --danger: #e84c4c;
+  --warn: #f5a623;
+  --font: 'Nunito', sans-serif;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --sh-sm: 0 2px 8px rgba(13, 51, 32, 0.08);
+  --sh-md: 0 4px 20px rgba(13, 51, 32, 0.12);
+  --sh-lg: 0 8px 40px rgba(13, 51, 32, 0.18);
+}
+
+/* ── RESET & GLOBAL ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--gray100);
+  font-family: var(--font);
+  color: var(--gray800);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* ── LAYOUT ── */
+.shell {
+  max-width: 430px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--white);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.page {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 80px;
+}
+
+.page-full {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── ELEMENTS ── */
+button {
+  cursor: pointer;
+  font-family: var(--font);
+  border: none;
+  outline: none;
+  background: none;
+}
+
+input,
+textarea {
+  font-family: var(--font);
+  outline: none;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
+}
+
+@keyframes truckFloat {
+  0%,
+  100% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
