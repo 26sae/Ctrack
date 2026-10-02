@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/shared/Navbar';
-import { API_URL, TRUCKS, MAP_STREETS } from '../constants';
+import { TRUCKS, MAP_STREETS, API_URL } from '../constants';
 
 function HomePage({ onNavigate, user }) {
   const [trucks, setTrucks] = useState(TRUCKS);
