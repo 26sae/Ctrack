@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../constants';
+import { API_BASE_URL } from '../constants';
 
 function AdminPage({ user, onNavigate, onLogout }) {
   const [reports, setReports] = useState([]);
@@ -18,7 +18,7 @@ function AdminPage({ user, onNavigate, onLogout }) {
 
   const fetchReports = async () => {
     try {
-      const response = await fetch(`${API_URL}/`);
+      const response = await fetch(`${API_BASE_URL}/`);
       const data = await response.json();
       setReports(data.map(d => ({
         ...d,
@@ -55,7 +55,7 @@ function AdminPage({ user, onNavigate, onLogout }) {
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/`, {
+      const res = await fetch(`${API_BASE_URL}/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, createdAt: new Date().toISOString() })
@@ -74,7 +74,7 @@ function AdminPage({ user, onNavigate, onLogout }) {
   const handleUpdate = async () => {
     if (!editingId) return;
     try {
-      const res = await fetch(`${API_URL}/${editingId}`, {
+      const res = await fetch(`${API_BASE_URL}/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -93,7 +93,7 @@ function AdminPage({ user, onNavigate, onLogout }) {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete report');
@@ -112,7 +112,7 @@ function AdminPage({ user, onNavigate, onLogout }) {
     }
     try {
       for (let id of selectedIds) {
-        await fetch(`${API_URL}/${id}`, {
+        await fetch(`${API_BASE_URL}/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: bulkStatus })
@@ -135,7 +135,7 @@ function AdminPage({ user, onNavigate, onLogout }) {
     if (!window.confirm(`Delete ${selectedIds.size} reports?`)) return;
     try {
       for (let id of selectedIds) {
-        await fetch(`${API_URL}/${id}`, {
+        await fetch(`${API_BASE_URL}/${id}`, {
           method: 'DELETE'
         });
       }

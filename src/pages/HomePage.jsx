@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/shared/Navbar';
-import { TRUCKS, MAP_STREETS, API_URL } from '../constants';
+import { TRUCKS, MAP_STREETS, API_BASE_URL } from '../constants';
 
 function HomePage({ onNavigate, user }) {
   const [trucks, setTrucks] = useState(TRUCKS);
@@ -19,7 +19,7 @@ function HomePage({ onNavigate, user }) {
 
     try {
       const response = await fetch(
-        `${API_URL}/api/search?query=${encodeURIComponent(searchQuery)}`
+        `${API_BASE_URL}/api/search?query=${encodeURIComponent(searchQuery)}`
       );
       const data = await response.json();
 

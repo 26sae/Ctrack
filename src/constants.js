@@ -1,6 +1,8 @@
 // Trucks data for live tracking
 
-export const API_URL = '';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+export const API_URL = API_BASE_URL;
+
 export const TRUCKS = [
   { id: 1, label: 'Truck A', x: 30, y: 35, status: 'En route', eta: '~8 min' },
   { id: 2, label: 'Truck B', x: 65, y: 55, status: 'Collecting', eta: 'Nearby' },

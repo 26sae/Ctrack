@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '../constants';
+import { API_BASE_URL } from '../constants';
 
 function ActivitiesPage() {
   const [filter, setFilter] = useState('All');
@@ -10,7 +10,7 @@ function ActivitiesPage() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch(`${API_URL}/`);
+        const response = await fetch(`${API_BASE_URL}/`);
         const data = await response.json();
         setActivities(data);
       } catch (error) {

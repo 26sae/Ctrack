@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { API_URL } from '../constants';
+import { API_BASE_URL } from '../constants';
 
 function LoginPage({ onNavigate, onLogin }) {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -18,7 +18,7 @@ function LoginPage({ onNavigate, onLogin }) {
     setErr('');
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { API_URL } from '../constants';
+import { API_BASE_URL } from '../constants';
 
 function RegisterPage({ onNavigate, onLogin }) {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
@@ -68,7 +68,7 @@ function RegisterPage({ onNavigate, onLogin }) {
     setErr('');
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/register`, {
+      const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),

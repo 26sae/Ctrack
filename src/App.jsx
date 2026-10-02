@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_URL } from './constants';
+import { API_BASE_URL } from './constants';
 import './App.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import BottomNav from './components/shared/BottomNav';
@@ -34,7 +34,7 @@ export function Datalist() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/`)
+    fetch(`${API_BASE_URL}/`)
       .then((response) => response.json())
       .then((data) => setData(data))
       .catch((error) => console.error('Error fetching data:', error));
