@@ -1,15 +1,15 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 
-// Enable CORS for cross-origin requests from frontend
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// MySQL Database Connection Pool
+// MySQL Connection
 const db = mysql.createPool({
   host: process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
   user: process.env.MYSQLUSER || process.env.DB_USER || 'root',
@@ -18,7 +18,7 @@ const db = mysql.createPool({
   port: process.env.MYSQLPORT || process.env.DB_PORT || 3306,
 });
 
-// Auto-create users table if it doesn't exist
+// Auto-create users table on boot
 (async () => {
   try {
     await db.query(`
@@ -35,85 +35,55 @@ const db = mysql.createPool({
   }
 })();
 
-// 1. REGISTER ROUTE
+// --- VULNERABLE AUTH ROUTES FOR SQL INJECTION LAB ---
+
+// 1. REGISTER
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body;
-
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
   try {
-    const [existing] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (existing.length > 0) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-
-    await db.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [
-      name || '',
-      email,
-      password,
-    ]);
-
+    // Unsanitized insert for testing
+    const sql = `INSERT INTO users (name, email, password) VALUES ('${name || ''}', '${email}', '${password}')`;
+    await db.query(sql);
     res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ error: 'Database error during registration' });
-  }
-});
-
-// 2. LOGIN ROUTE
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
-  }
-
-  try {
-    const [rows] = await db.query('SELECT * FROM users WHERE email = ? AND password = ?', [
-      email,
-      password,
-    ]);
-
-    if (rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    res.json({ message: 'Login successful', user: rows[0] });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Database error during login' });
-  }
-});
-
-// Search Route
-app.get('/api/search', async (req, res) => {
-  const query = String(req.query.query || '');
-
-  try {
-    const [rows] = await db.query(
-      'SELECT * FROM ctdb WHERE refNumber = ? OR address LIKE ? OR type = ?',
-      [query, `%${query}%`, query]
-    );
-    res.json(rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Root Route
-app.get('/', async (req, res) => {
+// 2. LOGIN (Vulnerable to ' OR '1'='1)
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  // Raw string concatenation for SQL injection demo
+  const query = `SELECT * FROM users WHERE email = '${email}' AND password = '${password}'`;
+
   try {
-    const [rows] = await db.query('SELECT * FROM ctdb');
-    res.json(rows);
+    const [rows] = await db.query(query);
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    res.json({ message: 'Login successful', user: rows[0] });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- SERVE FRONTEND STATIC FILES ---
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
+
+// Fallback to React Router index.html for non-API routes
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(distPath, 'index.html'));
   }
 });
 
 const port = Number(process.env.PORT) || 5000;
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
