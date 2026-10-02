@@ -1,26 +1,27 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
-const path = require('path');
 require('dotenv').config();
 
 const app = express();
 
+// Allow cross-origin requests from frontend
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// MySQL Connection
+// MySQL Database Connection Pool
 const db = mysql.createPool({
   host: process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
   user: process.env.MYSQLUSER || process.env.DB_USER || 'root',
   password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || 'pa55w0rd',
   database: process.env.MYSQLDATABASE || process.env.DB_NAME || 'ctdb',
-  port: process.env.MYSQLPORT || process.env.DB_PORT || 3306,
+  port: Number(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
 });
 
-// Auto-create users table on boot
+// Boot check: Ensure required tables exist
 (async () => {
   try {
+    // 1. Users table
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -30,23 +31,39 @@ const db = mysql.createPool({
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // 2. Records table (for search functionality)
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS records (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        refNumber VARCHAR(255),
+        address VARCHAR(255),
+        type VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log('Database connected and tables (users, records) ready.');
   } catch (err) {
-    console.error('Error creating users table:', err.message);
+    console.error('Database setup error:', err.message);
   }
 })();
 
-// --- VULNERABLE AUTH ROUTES FOR SQL INJECTION LAB ---
+// Health Check Route
+app.get('/', (req, res) => {
+  res.json({ status: 'Backend is running!', mode: 'SQLi Demonstration Lab' });
+});
 
-// 1. REGISTER
+// VULNERABLE REGISTER (SQL Injection Enabled)
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
+  const sql = `INSERT INTO users (name, email, password) VALUES ('${name || ''}', '${email}', '${password}')`;
+
   try {
-    // Unsanitized insert for testing
-    const sql = `INSERT INTO users (name, email, password) VALUES ('${name || ''}', '${email}', '${password}')`;
     await db.query(sql);
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -54,11 +71,9 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// 2. LOGIN (Vulnerable to ' OR '1'='1)
+// VULNERABLE LOGIN (SQL Injection Enabled: ' OR '1'='1)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-
-  // Raw string concatenation for SQL injection demo
   const query = `SELECT * FROM users WHERE email = '${email}' AND password = '${password}'`;
 
   try {
@@ -72,18 +87,18 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- SERVE FRONTEND STATIC FILES ---
-const distPath = path.join(__dirname, '../dist');
-app.use(express.static(distPath));
+// VULNERABLE SEARCH (SQL Injection Enabled)
+app.get('/api/search', async (req, res) => {
+  const query = req.query.query || '';
+  const sql = `SELECT * FROM records WHERE refNumber = '${query}' OR address LIKE '%${query}%' OR type = '${query}'`;
 
-// Fallback to React Router index.html for non-API routes
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(distPath, 'index.html'));
+  try {
+    const [rows] = await db.query(sql);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
 const port = Number(process.env.PORT) || 5000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+app.listen(port, () => console.log(`Backend server running on port ${port}`));
