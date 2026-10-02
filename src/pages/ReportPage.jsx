@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { auth } from '../firebase';
 import { REPORT_TYPES } from '../constants';
 import GoogleMapPicker from '../components/shared/GoogleMapPicker';
 
@@ -22,22 +20,6 @@ function ReportPage({ onNavigate }) {
     if (!form.address) return;
     setLoading(true);
     try {
-      await addDoc(collection(db, 'reports'), {
-        type: type.label,
-        icon: type.icon,
-        address: form.address,
-        coordinates:
-          Number.isFinite(form.lat) && Number.isFinite(form.lng)
-            ? { lat: form.lat, lng: form.lng }
-            : null,
-        description: form.description,
-        severity: form.severity,
-        status: 'Pending',
-        refNumber: `CT-${refNumber}`,
-        userId: auth.currentUser?.uid || null,
-        userEmail: auth.currentUser?.email || null,
-        createdAt: serverTimestamp(),
-      });
       setDone(true);
     } catch (error) {
       console.error('Error saving report:', error);

@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth } from '../firebase';
 import SubHeader from '../components/shared/SubHeader';
 
 function MyAddressPage({ onNavigate }) {
@@ -13,34 +11,9 @@ function MyAddressPage({ onNavigate }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  React.useEffect(() => {
-    const fetchAddress = async () => {
-      if (!auth.currentUser) return;
-      const docRef = doc(db, 'users', auth.currentUser.uid);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        setAddr({
-          street: data.street || '',
-          barangay: data.barangay || '',
-          city: data.city || '',
-          zone: data.zone || '',
-        });
-      }
-    };
-    fetchAddress();
-  }, []);
-
   const saveAddress = async () => {
     setLoading(true);
     try {
-      await setDoc(doc(db, 'users', auth.currentUser.uid), {
-        email: auth.currentUser.email,
-        street: addr.street,
-        barangay: addr.barangay,
-        city: addr.city,
-        zone: addr.zone,
-      }, { merge: true });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {

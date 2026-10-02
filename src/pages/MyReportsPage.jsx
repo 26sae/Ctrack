@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { auth} from '../firebase';
 import SubHeader from '../components/shared/SubHeader';
 
 function MyReportsPage({ onNavigate }) {
@@ -8,22 +6,7 @@ function MyReportsPage({ onNavigate }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMyReports = async () => {
-      try {
-        const q = query(
-          collection(db, 'reports'),
-          where('userId', '==', auth.currentUser?.uid),
-          orderBy('createdAt', 'desc')
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setMyReports(data);
-      } catch (error) {
-        console.error('Error fetching my reports:', error);
-      }
-      setLoading(false);
-    };
-    fetchMyReports();
+    setLoading(false);
   }, []);
 
   const counts = {

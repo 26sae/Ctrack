@@ -1,7 +1,4 @@
 import React, { useState } from 'react';
-import { updateProfile } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth } from '../firebase';
 import SubHeader from '../components/shared/SubHeader';
 
 function EditProfilePage({ user, onNavigate, onUpdateUser }) {
@@ -14,32 +11,15 @@ function EditProfilePage({ user, onNavigate, onUpdateUser }) {
   const [success, setSuccess] = useState(false);
 
   React.useEffect(() => {
-    const fetchProfile = async () => {
-      if (!auth.currentUser) return;
-      const docRef = doc(db, 'users', auth.currentUser.uid);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        setForm((prev) => ({
-          ...prev,
-          phone: data.phone || '',
-          barangay: data.barangay || '',
-        }));
-      }
-    };
-    fetchProfile();
-  }, []);
+    setForm((prev) => ({
+      ...prev,
+      name: user?.name || '',
+    }));
+  }, [user?.name]);
 
   const saveChanges = async () => {
     setLoading(true);
     try {
-      await updateProfile(auth.currentUser, { displayName: form.name });
-      await setDoc(doc(db, 'users', auth.currentUser.uid), {
-        name: form.name,
-        email: auth.currentUser.email,
-        phone: form.phone,
-        barangay: form.barangay,
-      });
       if (onUpdateUser) onUpdateUser({ ...user, name: form.name });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);

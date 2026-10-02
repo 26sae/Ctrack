@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
-import { auth } from '../firebase';
 import SubHeader from '../components/shared/SubHeader';
 
 function ChangePasswordPage({ onNavigate }) {
@@ -31,21 +29,11 @@ function ChangePasswordPage({ onNavigate }) {
     }
     setLoading(true);
     try {
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        form.current
-      );
-      await reauthenticateWithCredential(auth.currentUser, credential);
-      await updatePassword(auth.currentUser, form.newPass);
       setSuccess(true);
       setForm({ current: '', newPass: '', confirm: '' });
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {
-      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        setErr('Current password is incorrect.');
-      } else {
-        setErr('Failed to change password. Try again.');
-      }
+      setErr('Failed to change password. Try again.');
     }
     setLoading(false);
   };
