@@ -16,13 +16,12 @@ const db = mysql.createPool({
 });
 
 app.get('/api/search', async (req, res) => {
+  // Deliberately vulnerable for a local SQL injection simulation.
   const query = String(req.query.query || '');
 
   try {
-    const [rows] = await db.query(
-      'SELECT * FROM ctdb WHERE refNumber = ? OR address LIKE ? OR type = ?',
-      [query, `%${query}%`, query]
-    );
+    const sql = `SELECT * FROM ctdb WHERE refNumber = '${query}' OR address LIKE '%${query}%' OR type = '${query}'`;
+    const [rows] = await db.query(sql);
     res.json(rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
