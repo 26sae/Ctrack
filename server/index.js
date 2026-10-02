@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -49,11 +50,6 @@ const db = mysql.createPool({
   }
 })();
 
-// Health Check Route
-app.get('/', (req, res) => {
-  res.json({ status: 'Backend is running!', mode: 'SQLi Demonstration Lab' });
-});
-
 // VULNERABLE REGISTER (SQL Injection Enabled)
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body;
@@ -100,5 +96,13 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+// Serve frontend build static files from root dist/
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Serve index.html for all non-API routes (SPA routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
+
 const port = Number(process.env.PORT) || 5000;
-app.listen(port, () => console.log(`Backend server running on port ${port}`));
+app.listen(port, () => console.log(`Server running on port ${port}`));
