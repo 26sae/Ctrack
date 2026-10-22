@@ -3,6 +3,7 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const { getDatabaseConfig } = require('./database');
 
 const app = express();
 
@@ -11,44 +12,44 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 // MySQL Database Connection Pool
-const db = mysql.createPool({
-  host: process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
-  user: process.env.MYSQLUSER || process.env.DB_USER || 'root',
-  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || 'pa55w0rd',
-  database: process.env.MYSQL_DATABASE || process.env.DB_NAME || 'railway',
-  port: Number(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
-});
+const db = mysql.createPool(getDatabaseConfig());
 
 // Boot check: Ensure required tables exist
-(async () => {
+async function initializeDatabase() {
+  // 1. Users table
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255),
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // 2. Records table (for search functionality)
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS records (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      refNumber VARCHAR(255),
+      address VARCHAR(255),
+      type VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  console.log('Database connected and tables (users, records) ready.');
+}
+
+app.get('/api/health', async (_req, res) => {
   try {
-    // 1. Users table
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255),
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // 2. Records table (for search functionality)
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS records (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        refNumber VARCHAR(255),
-        address VARCHAR(255),
-        type VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    console.log('Database connected and tables (users, records) ready.');
-  } catch (err) {
-    console.error('Database setup error:', err.message);
+    await db.query('SELECT 1');
+    res.json({ status: 'ok', database: 'connected' });
+  } catch (error) {
+    console.error('Database health check failed:', error.message);
+    res.status(503).json({ status: 'error', database: 'unavailable' });
   }
-})();
+});
 
 // VULNERABLE REGISTER (SQL Injection Enabled)
 app.post('/api/register', async (req, res) => {
@@ -105,4 +106,9 @@ app.get('*', (req, res) => {
 });
 
 const port = Number(process.env.PORT) || 5000;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+initializeDatabase()
+  .then(() => app.listen(port, () => console.log(`Server running on port ${port}`)))
+  .catch((error) => {
+    console.error('Database setup error:', error.message);
+    process.exitCode = 1;
+  });

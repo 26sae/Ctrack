@@ -1,6 +1,7 @@
 // seed.js
 require('dotenv').config();
 const mysql = require('mysql2/promise');
+const { getDatabaseConfig } = require('./server/database');
 
 const ROWS_TO_INSERT = 5000;
 const BATCH_SIZE = 500;
@@ -15,13 +16,7 @@ function randomRecord(i) {
 }
 
 async function seed() {
-  const db = await mysql.createConnection({
-    host: process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
-    user: process.env.MYSQLUSER || process.env.DB_USER || 'root',
-    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || 'pa55w0rd',
-    database: process.env.MYSQL_DATABASE || process.env.DB_NAME || 'railway',
-    port: Number(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
-  });
+  const db = await mysql.createConnection(getDatabaseConfig());
 
   console.log(`Inserting ${ROWS_TO_INSERT} rows...`);
 
