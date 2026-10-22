@@ -20,12 +20,14 @@ FROM node:22-alpine AS runtime
 WORKDIR /app
 
 ENV NODE_ENV=production \
-    PORT=5000
+    PORT=5000 \
+    MYSQL_SSL_CA_PATH=/app/ca.pem
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY server ./server
+COPY ca.pem ./ca.pem
 COPY --from=build /app/dist ./dist
 
 USER node

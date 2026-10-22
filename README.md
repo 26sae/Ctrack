@@ -32,23 +32,24 @@ Google Maps is integrated in the Report page so users can pin exact issue locati
 
 If the key is missing, the app still runs and shows a setup hint in place of the map picker.
 
-## Deployment (Vercel frontend + MySQL API)
+## Docker deployment with Aiven MySQL
 
-Vercel hosts the Vite frontend; it does not run the Express server in `server/index.js`.
-Deploy that server on a Node.js host and set `VITE_API_BASE_URL` in Vercel to the
-server's public HTTPS URL. Set the database variables on the server host:
+The Docker image serves the Vite frontend and Express API from one container. Set
+these database variables in the container platform's runtime environment:
 
 - `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`
 - `MYSQLDATABASE` (also accepts `MYSQL_DATABASE`)
-- `MYSQL_SSL_CA` with the Aiven CA certificate contents, or `MYSQL_SSL_CA_PATH`
-  pointing to the certificate file available to the server
+
+Place Aiven's CA certificate at the project root as `ca.pem` before building the
+image. The Dockerfile includes it in the runtime image and sets
+`MYSQL_SSL_CA_PATH=/app/ca.pem`. Do not put database credentials or the certificate
+in `VITE_` variables; those are bundled into the browser frontend.
 
 The server requires a CA certificate when connecting to an Aiven hostname, verifies
 the database certificate, and waits for the database schema setup before accepting
-requests. After changing Vercel environment variables, redeploy the frontend. After
-changing server environment variables, restart or redeploy the API server.
+requests. Rebuild and redeploy the image after changing the CA certificate or app
+code. Restart or redeploy after changing runtime environment variables.
 
 To check the API and database connection, open
 `https://<your-api-host>/api/health`; a working connection returns
 `{"status":"ok","database":"connected"}`.
-
