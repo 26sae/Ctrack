@@ -34,6 +34,23 @@ Leave `VITE_API_BASE_URL` empty for local development and same-origin deployment
 For a separately hosted API, set `VITE_API_BASE_URL` to that API's origin before
 building the frontend; Vite embeds this value at build time.
 
+## Login defenses
+
+The login and registration routes use parameterized SQL. New passwords are stored
+as scrypt hashes; a successful login upgrades an existing legacy plaintext
+password to a hash. Login requests are limited to five per IP address in a
+15-minute window. Failed and rate-limited attempts are logged in the API server
+terminal without logging credentials. The in-memory limit resets when the server
+restarts and is not shared across multiple server instances. If the API is
+behind a reverse proxy, set `TRUST_PROXY_HOPS` to the verified number of trusted
+proxy hops so Express can determine client IPs correctly. Do not enable proxy
+trust without confirming the deployment's network path.
+
+With the API running locally, run `node bruteforce.js` to send six requests using
+a fixed dummy account to `127.0.0.1`. The script refuses non-local URLs; the
+expected result is five failed logins followed by HTTP 429. Watch the API
+terminal for the corresponding security logs.
+
 ## Google Maps API Setup
 
 Google Maps is integrated in the Report page so users can pin exact issue locations.
