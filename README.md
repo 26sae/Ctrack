@@ -10,9 +10,29 @@ CleanTrack is developed using React Native technology to support cross-platform 
 
 	npm install
 
-2. Start the development server:
+2. Create `.env` from the template and configure the database values:
+
+	```powershell
+	Copy-Item .env.example .env
+	```
+
+	Then set `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, and
+	`MYSQLPASSWORD` to the values from Aiven. Keep
+	`MYSQL_SSL_CA_PATH=./ca.pem`; the CA certificate must be present at the project
+	root.
+
+3. Start the API server in one terminal:
+
+	npm run start
+
+4. Start the Vite frontend in a second terminal:
 
 	npm run dev
+
+The Vite development server proxies `/api` requests to `http://127.0.0.1:5000`.
+Leave `VITE_API_BASE_URL` empty for local development and same-origin deployments.
+For a separately hosted API, set `VITE_API_BASE_URL` to that API's origin before
+building the frontend; Vite embeds this value at build time.
 
 ## Google Maps API Setup
 
