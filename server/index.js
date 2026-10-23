@@ -66,7 +66,7 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
-// BEGIN AUTH DEFENSES: validate inputs, hash passwords, and use parameterized SQL.
+// POST SQL injection defense: validate input types and bind all values with placeholders.
 app.post('/api/register', async (req, res) => {
   const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
   const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
@@ -92,6 +92,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// POST SQL injection defense: bind the email; compare the password to its stored hash in application code.
 // Login defense: cap requests per IP and log failures without logging credentials.
 app.post('/api/login', loginRateLimiter, async (req, res) => {
   const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
@@ -145,7 +146,7 @@ app.post('/api/login', loginRateLimiter, async (req, res) => {
 });
 // END AUTH DEFENSES
 
-// BEGIN SEARCH DEFENSE: bind user input instead of interpolating it into SQL.
+// GET SQL injection defense: bind all search values; never concatenate the request query into SQL.
 app.get('/api/search', async (req, res) => {
   const query = typeof req.query.query === 'string' ? req.query.query : '';
 
@@ -160,7 +161,6 @@ app.get('/api/search', async (req, res) => {
     res.status(500).json({ error: 'Search failed' });
   }
 });
-// END SEARCH DEFENSE
 
 // Serve frontend build static files from root dist/
 app.use(express.static(path.join(__dirname, '../dist')));
